@@ -31,6 +31,7 @@ export class RemoteCore implements Core {
   edit = (a: unknown) => call("edit", a);
   trash = (a: unknown) => call("trash", a);
   rename = (a: unknown) => call("rename", a);
+  open_project = (a: unknown) => call("open_project", a);
   discard = (a: unknown) => call("discard", a);
   set_key = (a: unknown) => call("set_key", a);
   continue_shot = (a: unknown) => call("continue_shot", a);

@@ -6,7 +6,7 @@ import { assemble, localVoices, speakLocally, voiceTrack } from "./assemble.js";
 import { GEMINI_VOICES, geminiKey, saveGeminiKey, speakWithGemini } from "./gemini.js";
 import { extractLastFrame } from "./chain.js";
 import { burnCaptions, captionedName, captionSetup, previewCaptions, transcribe } from "./captions.js";
-import { characterLook, createCharacter, downloadAsset, renameAsset, trashAsset, editCharacter, getFlowState, listAssets, listCharacters, rememberCharacter, runAgentBatch, runContinue, runEdit, runGeneration } from "./flow.js";
+import { characterLook, createCharacter, downloadAsset, openProject, renameAsset, trashAsset, editCharacter, getFlowState, listAssets, listCharacters, rememberCharacter, runAgentBatch, runContinue, runEdit, runGeneration } from "./flow.js";
 import { JobQueue, type Job } from "./queue.js";
 import { BIN, COMPUTER, IS_MAC, IS_WIN, moveToBin } from "./platform.js";
 import { TECHNIQUES, techniqueById } from "./techniques.js";
@@ -225,6 +225,9 @@ export const shapes = {
     name: z.string().min(1).describe("Exact current title of the item, as listed by flow_assets."),
     new_name: z.string().min(1).max(200).describe("The title to give it instead. Refused if something in the project already has it."),
   },
+  open_project: {
+    project: z.string().min(1).describe("Project name as Flow shows it, or its uuid/URL. flow_status lists the names when no project is open."),
+  },
   set_key: { key: z.string().min(1).max(200) },
   discard: { path: z.string().min(1).describe("A saved film, still, narration or whole project folder inside the films folder, to move to this computer's bin (Mac Trash, Windows Recycle Bin).") },
   outputs: {},
@@ -303,6 +306,7 @@ export interface Core {
   edit(a: Args<"edit">): Promise<unknown>;
   trash(a: Args<"trash">): Promise<unknown>;
   rename(a: Args<"rename">): Promise<unknown>;
+  open_project(a: Args<"open_project">): Promise<unknown>;
   discard(a: Args<"discard">): Promise<unknown>;
   set_key(a: Args<"set_key">): Promise<unknown>;
   continue_shot(a: Args<"continue_shot">): Promise<unknown>;
@@ -629,6 +633,11 @@ export class LocalCore implements Core {
   async rename({ name, new_name }: Args<"rename">) {
     if (this.queue.busy) throw new Error(BUSY);
     return renameAsset(name, new_name);
+  }
+
+  async open_project({ project }: Args<"open_project">) {
+    if (this.queue.busy) throw new Error(BUSY);
+    return openProject(project);
   }
 
   async character(a: Args<"character">) {
